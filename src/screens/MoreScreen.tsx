@@ -408,6 +408,29 @@ const MoreScreen = () => {
   return (
     <Container>
       <Content showsVerticalScrollIndicator={false}>
+        <SectionTitle>Suscripción</SectionTitle>
+        <SettingItem style={{ 
+          backgroundColor: COLORS.accent + '11',
+          marginBottom: SPACING.lg,
+          borderColor: COLORS.accent + '33',
+          borderWidth: 1
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <MaterialIcons 
+              name="workspace-premium" 
+              size={28} 
+              color={COLORS.accent} 
+              style={{ marginRight: SPACING.md }}
+            />
+            <View>
+              <SettingText style={{ fontWeight: 'bold', fontSize: TYPOGRAPHY.body }}>Plan IA Premium</SettingText>
+              <SettingText style={{ fontSize: TYPOGRAPHY.small, color: COLORS.accent, marginTop: 2 }}>
+                Activo • Gestionar en Panel Web
+              </SettingText>
+            </View>
+          </View>
+        </SettingItem>
+
         <SectionTitle>Settings</SectionTitle>
 
         <TouchableOpacity 
