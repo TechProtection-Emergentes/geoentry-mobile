@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, View, Text, Switch } from 'react-native';
+import { Dimensions, View, Text, Switch, Pressable, Alert, Vibration } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import styled from 'styled-components/native';
@@ -240,8 +240,24 @@ const SensorStatus = styled.Text`
   margin-top: ${SPACING.xs}px;
 `;
 
-const SensorSwitch = styled(Switch)`
-  transform: scale(0.9);
+interface HoldButtonProps {
+  isActive: boolean;
+  disabled?: boolean;
+}
+
+const HoldButton = styled(Pressable)<HoldButtonProps>`
+  background-color: ${(props: HoldButtonProps) => props.disabled ? COLORS.textPrimary + '11' : props.isActive ? COLORS.accent + '33' : COLORS.textPrimary + '22'};
+  border-radius: 20px;
+  padding: ${SPACING.xs}px ${SPACING.md}px;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid ${(props: HoldButtonProps) => props.disabled ? 'transparent' : props.isActive ? COLORS.accent : 'transparent'};
+`;
+
+const HoldButtonText = styled.Text<HoldButtonProps>`
+  color: ${(props: HoldButtonProps) => props.disabled ? COLORS.textPrimary + '44' : props.isActive ? COLORS.accent : COLORS.textPrimary};
+  font-size: ${TYPOGRAPHY.small}px;
+  font-weight: 600;
 `;
 
 const SectionTitle = styled.Text`
@@ -392,19 +408,32 @@ const HomeScreen = () => {
                                      sensor.isActive ? 'Encendido' : 'Apagado'}
                                 </SensorStatus>
                             </SensorInfo>
-                            <SensorSwitch
-                                value={sensor.isActive}
-                                onValueChange={() => handleToggleSensor(sensor.id, sensor.isActive)}
+                            <HoldButton
+                                isActive={sensor.isActive}
                                 disabled={!isControlsEnabled}
-                                trackColor={{ 
-                                    false: COLORS.textPrimary + (isControlsEnabled ? '33' : '22'), 
-                                    true: COLORS.accent + (isControlsEnabled ? '66' : '33') 
+                                delayLongPress={800}
+                                onPress={() => {
+                                    if (isControlsEnabled) {
+                                        Alert.alert('Mantén presionado', 'Para evitar accidentes, mantén presionado el botón por 1 segundo para cambiar el estado.');
+                                    }
                                 }}
-                                thumbColor={
-                                    !isControlsEnabled ? COLORS.textPrimary + '44' :
-                                    sensor.isActive ? COLORS.accent : COLORS.textPrimary + '66'
-                                }
-                            />
+                                onLongPress={() => {
+                                    if (isControlsEnabled) {
+                                        Vibration.vibrate(50);
+                                        handleToggleSensor(sensor.id, sensor.isActive);
+                                    }
+                                }}
+                            >
+                                <MaterialIcons 
+                                    name={sensor.isActive ? "power" : "power-off"} 
+                                    size={16} 
+                                    color={!isControlsEnabled ? COLORS.textPrimary + '44' : sensor.isActive ? COLORS.accent : COLORS.textPrimary} 
+                                    style={{ marginRight: 4 }}
+                                />
+                                <HoldButtonText isActive={sensor.isActive} disabled={!isControlsEnabled}>
+                                    {sensor.isActive ? 'ON' : 'OFF'}
+                                </HoldButtonText>
+                            </HoldButton>
                         </SensorItem>
                     ))}
                 </SensorTypeContainer>
