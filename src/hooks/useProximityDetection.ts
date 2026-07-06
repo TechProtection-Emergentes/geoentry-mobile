@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
 import { useHomeLocation } from '../contexts/HomeLocationContext';
-import { Coordinates, HomeLocation, ProximityDetectionState } from '../types/location';
+import { Coordinates, HomeLocation } from '../types/location';
 import { apiService } from '../services/apiService';
 import { deviceService } from '../services/deviceService';
+import { checkProximity } from '../utils/locationUtils';
+import { LOCATION_TASK_NAME } from '../services/backgroundLocationTask';
 
 interface UseProximityDetectionOptions {
   enableWatching?: boolean;
@@ -17,89 +19,7 @@ interface ProximityEvent {
   distance: number;
 }
 
-/**
- * Calculate distance between two coordinates using Haversine formula
- * @param coord1 First coordinate
- * @param coord2 Second coordinate
- * @returns Distance in meters
- */
-export const calculateDistance = (coord1: Coordinates, coord2: Coordinates): number => {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = (coord1.latitude * Math.PI) / 180;
-  const φ2 = (coord2.latitude * Math.PI) / 180;
-  const Δφ = ((coord2.latitude - coord1.latitude) * Math.PI) / 180;
-  const Δλ = ((coord2.longitude - coord1.longitude) * Math.PI) / 180;
-
-  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-};
-
-/**
- * Find the nearest home location to current coordinates
- * @param currentLocation Current coordinates
- * @param homeLocations Array of home locations
- * @returns Object with nearest location and distance, or null if none found
- */
-export const findNearestHomeLocation = (
-  currentLocation: Coordinates,
-  homeLocations: HomeLocation[]
-): { location: HomeLocation; distance: number } | null => {
-  if (homeLocations.length === 0) return null;
-
-  const activeLocations = homeLocations.filter(loc => loc.isActive);
-  if (activeLocations.length === 0) return null;
-
-  let nearest: { location: HomeLocation; distance: number } | null = null;
-
-  for (const homeLocation of activeLocations) {
-    const distance = calculateDistance(currentLocation, homeLocation.coordinates);
-    
-    if (!nearest || distance < nearest.distance) {
-      nearest = { location: homeLocation, distance };
-    }
-  }
-
-  return nearest;
-};
-
-/**
- * Check if current location is within proximity of any home location
- * @param currentLocation Current coordinates
- * @param homeLocations Array of home locations
- * @returns Object with proximity status and details
- */
-export const checkProximity = (
-  currentLocation: Coordinates,
-  homeLocations: HomeLocation[]
-): {
-  isNearHome: boolean;
-  nearestLocation: HomeLocation | null;
-  distance: number | null;
-  withinRadius: boolean;
-} => {
-  const nearest = findNearestHomeLocation(currentLocation, homeLocations);
-  
-  if (!nearest) {
-    return {
-      isNearHome: false,
-      nearestLocation: null,
-      distance: null,
-      withinRadius: false,
-    };
-  }
-
-  const withinRadius = nearest.distance <= nearest.location.radius;
-
-  return {
-    isNearHome: withinRadius,
-    nearestLocation: nearest.location,
-    distance: nearest.distance,
-    withinRadius,
-  };
-};
+// Removed local proximity functions, imported from utils
 
 export const useProximityDetection = (options: UseProximityDetectionOptions = {}) => {
   const {
@@ -293,54 +213,40 @@ export const useProximityDetection = (options: UseProximityDetectionOptions = {}
 
       setError(null);
 
-      const { status } = await Location.getForegroundPermissionsAsync();
-      if (status !== Location.PermissionStatus.GRANTED) {
-        throw new Error('Permisos de ubicación no concedidos');
-      }
+      // 1. Pedir permisos en primer plano
+      const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
+      if (fgStatus !== 'granted') throw new Error('Permisos básicos denegados');
 
-      // Stop any existing subscription
-      if (watchSubscription.current) {
-        watchSubscription.current.remove();
-      }
+      // 2. Pedir permisos en SEGUNDO PLANO
+      const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
+      if (bgStatus !== 'granted') throw new Error('Permisos en background denegados');
 
-      // Start watching position
-      watchSubscription.current = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.BestForNavigation,
-          timeInterval: watchInterval,
-          distanceInterval: minDistanceFilter,
-        },
-        (locationResult) => {
-          const coordinates: Coordinates = {
-            latitude: locationResult.coords.latitude,
-            longitude: locationResult.coords.longitude,
-          };
-
-          setCurrentLocation(coordinates);
-          checkCurrentProximity(coordinates);
-        }
-      );
+      // 3. Registrar el Location Update con TaskManager
+      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        accuracy: Location.Accuracy.Balanced,
+        distanceInterval: minDistanceFilter,
+        deferredUpdatesInterval: watchInterval,
+        showsBackgroundLocationIndicator: true,
+      });
 
       setIsWatching(true);
-      console.log('Proximity watching started');
+      console.log('Proximity watching started en BACKGROUND');
     } catch (err: any) {
       console.error('Error starting location watching:', err);
       setError(err.message || 'Error al iniciar el monitoreo');
     }
-  }, [isWatching, proximitySettings.isEnabled, watchInterval, minDistanceFilter, checkCurrentProximity]);
+  }, [isWatching, proximitySettings.isEnabled, watchInterval, minDistanceFilter]);
 
   // Stop watching location
-  const stopWatching = useCallback(() => {
-    if (watchSubscription.current) {
-      watchSubscription.current.remove();
-      watchSubscription.current = null;
+  const stopWatching = useCallback(async () => {
+    try {
+      const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+      if (hasStarted) {
+        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      }
+    } catch (e) {
+      console.error('Error deteniendo tracking', e);
     }
-
-    if (proximityCheckInterval.current) {
-      clearInterval(proximityCheckInterval.current);
-      proximityCheckInterval.current = null;
-    }
-
     setIsWatching(false);
     console.log('Proximity watching stopped');
   }, []);
@@ -380,10 +286,5 @@ export const useProximityDetection = (options: UseProximityDetectionOptions = {}
     startWatching,
     stopWatching,
     forceProximityCheck,
-    
-    // Utilities
-    calculateDistance,
-    findNearestHomeLocation,
-    checkProximity,
   };
 };

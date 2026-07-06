@@ -7,7 +7,6 @@ import styled from 'styled-components/native';
 import { COLORS, TYPOGRAPHY, SPACING } from '../theme';
 import { useHomeLocation } from '../contexts/HomeLocationContext';
 import { PROXIMITY_RADIUS_OPTIONS } from '../types/location';
-import { calculateDistance } from '../hooks/useProximityDetection';
 
 const { width, height } = Dimensions.get('window');
 
@@ -793,9 +792,9 @@ const HomeSetupScreen: React.FC = () => {
                 pinColor={COLORS.statusGreen}
               />
             )}
-            {formData.coordinates && (
+            {(selectedLocation || formData.coordinates) && (
               <Circle
-                center={formData.coordinates}
+                center={(selectedLocation || formData.coordinates)!}
                 radius={formData.radius}
                 strokeColor={`${COLORS.accent}33`}
                 fillColor={`${COLORS.accent}11`}

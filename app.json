@@ -11,7 +11,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Esta app necesita acceso a tu ubicación para funcionar correctamente."
+          "locationAlwaysAndWhenInUsePermission": "GeoEntry necesita acceso a tu ubicación en segundo plano para abrirte la puerta mágicamente al llegar a casa."
         }
       ]
     ],

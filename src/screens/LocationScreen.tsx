@@ -7,6 +7,7 @@ import { COLORS, TYPOGRAPHY, SPACING } from '../theme';
 import { useHomeLocation } from '../contexts/HomeLocationContext';
 import { useProximityDetection } from '../hooks/useProximityDetection';
 import { ProximityModal } from '../components/ProximityModal';
+import { calculateDistance } from '../utils/locationUtils';
 
 // Styled Components
 const Container = styled.ScrollView`
@@ -267,7 +268,6 @@ const LocationScreen: React.FC = () => {
     startWatching,
     stopWatching,
     getCurrentLocation: getProximityLocation,
-    calculateDistance,
   } = useProximityDetection({
     enableWatching: proximitySettings.isEnabled,
   });

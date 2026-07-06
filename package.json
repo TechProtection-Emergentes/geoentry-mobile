@@ -39,7 +39,8 @@
     "react-native-web": "^0.20.0",
     "styled-components": "^6.1.18",
     "twrnc": "^4.8.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "expo-task-manager": "~13.1.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
