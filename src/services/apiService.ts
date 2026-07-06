@@ -3,8 +3,8 @@ import { Database } from '../types/supabase';
 import { supabase } from '../supabase/supabase-client';
 import { deviceService } from './deviceService';
 
-const API_BASE_URL = 'https://geoentry-rest-api.onrender.com/api';
-//const API_BASE_URL = 'http://192.168.18.59:3000/api';
+//const API_BASE_URL = 'https://geoentry-rest-api.onrender.com/api';
+const API_BASE_URL = 'http://192.168.18.59:3000/api';
 
 // Tipos basados en la estructura de Supabase
 type LocationRow = Database['public']['Tables']['locations']['Row'];

@@ -244,8 +244,10 @@ export const useProximityDetection = (options: UseProximityDetectionOptions = {}
       if (hasStarted) {
         await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       }
-    } catch (e) {
-      console.error('Error deteniendo tracking', e);
+    } catch (e: any) {
+      if (e?.message && !e.message.includes('TaskNotFoundException') && !e.message.includes('not found')) {
+        console.warn('Nota deteniendo tracking:', e.message);
+      }
     }
     setIsWatching(false);
     console.log('Proximity watching stopped');

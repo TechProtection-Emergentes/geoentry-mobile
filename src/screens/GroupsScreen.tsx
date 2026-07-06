@@ -258,6 +258,23 @@ const LocationsScreen: React.FC = () => {
             );
           })}
         </MapView>
+        
+        {/* Leyenda */}
+        <View style={tw`absolute top-4 left-4 bg-gray-800 rounded-lg p-3 shadow-lg opacity-90`}>
+          <Text style={tw`text-white font-bold text-xs mb-2`}>Leyenda</Text>
+          <View style={tw`flex-row items-center mb-2`}>
+            <View style={tw`w-3 h-3 rounded-full bg-green-500 mr-2`} />
+            <Text style={tw`text-gray-300 text-xs`}>Tú (Celular)</Text>
+          </View>
+          <View style={tw`flex-row items-center mb-2`}>
+            <View style={tw`w-3 h-3 rounded-full bg-blue-500 mr-2`} />
+            <Text style={tw`text-gray-300 text-xs`}>Casa / Zona</Text>
+          </View>
+          <View style={tw`flex-row items-center`}>
+            <View style={tw`w-3 h-3 rounded-full bg-gray-500 mr-2`} />
+            <Text style={tw`text-gray-300 text-xs`}>Inactiva</Text>
+          </View>
+        </View>
       </View>
 
       {/* Stats Footer */}
