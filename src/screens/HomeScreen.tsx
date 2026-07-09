@@ -554,6 +554,28 @@ const HomeScreen = () => {
           <WelcomeSubtitle>Manage your smart home devices</WelcomeSubtitle>
         </WelcomeSection>
 
+        {/* Banner de Seguridad Centralizada */}
+        <View style={{
+          backgroundColor: `${COLORS.accent}15`,
+          padding: SPACING.md,
+          borderRadius: 8,
+          marginBottom: SPACING.lg,
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: `${COLORS.accent}30`
+        }}>
+          <MaterialIcons name="security" size={24} color={COLORS.accent} style={{ marginRight: SPACING.sm }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: COLORS.textPrimary, fontWeight: 'bold', fontSize: TYPOGRAPHY.small }}>
+              Seguridad Centralizada
+            </Text>
+            <Text style={{ color: COLORS.textPrimary + '99', fontSize: TYPOGRAPHY.small }}>
+              Las alertas críticas y roles familiares se administran desde tu Panel Web.
+            </Text>
+          </View>
+        </View>
+
         {/* Estado de Proximidad */}
         <AnalyticsCard style={{ marginBottom: SPACING.lg }}>
           <AnalyticsHeader>
