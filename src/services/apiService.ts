@@ -53,7 +53,7 @@ export interface BackendProximityEvent {
 export interface Sensor {
   id: string;
   name: string;
-  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker';
+  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock';
   isActive: boolean;
   user_id: string;
   created_at: string | null;
@@ -62,7 +62,7 @@ export interface Sensor {
 
 export interface CreateSensorData {
   name: string;
-  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker';
+  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock';
   isActive: boolean;
 }
 
@@ -431,7 +431,7 @@ class ApiService {
     }
   }
 
-  async getSensorsByUserAndType(sensorType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker', userId?: string): Promise<any[]> {
+  async getSensorsByUserAndType(sensorType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock', userId?: string): Promise<any[]> {
     try {
       const targetUserId = userId || await this.getCurrentUserId();
       if (!targetUserId) {
@@ -448,7 +448,7 @@ class ApiService {
 
   async createSensorForUser(sensorData: {
     name: string;
-    sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker';
+    sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock';
     isActive: boolean;
   }, userId?: string): Promise<any> {
     try {

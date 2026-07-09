@@ -130,7 +130,7 @@ export const useSensors = () => {
     }
   }, []);
 
-  const getSensorsByType = useCallback((type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker') => {
+  const getSensorsByType = useCallback((type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock') => {
     return sensors.filter(sensor => sensor.sensor_type === type);
   }, [sensors]);
 
@@ -138,6 +138,7 @@ export const useSensors = () => {
   const getLightSensors = useCallback(() => getSensorsByType('smart_light'), [getSensorsByType]);
   const getACSensors = useCallback(() => getSensorsByType('air_conditioner'), [getSensorsByType]);
   const getCoffeeMakerSensors = useCallback(() => getSensorsByType('coffee_maker'), [getSensorsByType]);
+  const getLockSensors = useCallback(() => getSensorsByType('smart_lock'), [getSensorsByType]);
 
   useEffect(() => {
     loadSensors();
@@ -159,6 +160,7 @@ export const useSensors = () => {
     getLightSensors,
     getACSensors,
     getCoffeeMakerSensors,
+    getLockSensors,
     // Estados de proximidad
     proximityStatus,
     isControlsEnabled: proximityStatus.isAtHome,

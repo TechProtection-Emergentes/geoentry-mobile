@@ -366,6 +366,7 @@ export type Database = {
       | "smart_light"
       | "air_conditioner"
       | "coffee_maker"
+      | "smart_lock"
       feedback_action_enum: "APPROVED" | "IGNORED" | "MANUAL_OVERRIDE"
       user_role: "USER" | "ADMIN"
     }
@@ -503,6 +504,7 @@ export const Constants = {
         "smart_light",
         "air_conditioner",
         "coffee_maker",
+        "smart_lock",
       ],
       feedback_action_enum: ["APPROVED", "IGNORED", "MANUAL_OVERRIDE"],
       user_role: ["USER", "ADMIN"],

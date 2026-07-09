@@ -273,7 +273,7 @@ const MoreScreen = () => {
   const [showSensorModal, setShowSensorModal] = useState(false);
   const [newSensor, setNewSensor] = useState({
     name: '',
-    sensor_type: 'led_tv' as 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker',
+    sensor_type: 'led_tv' as 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock',
     isActive: true
   });
 
@@ -282,7 +282,7 @@ const MoreScreen = () => {
     if (availableTypes.length > 0) {
       setNewSensor(prev => ({
         ...prev,
-        sensor_type: availableTypes[0] as 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker'
+        sensor_type: availableTypes[0] as 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock'
       }));
     }
   }, [availableTypes]);
@@ -391,6 +391,7 @@ const MoreScreen = () => {
       case 'smart_light': return 'lightbulb';
       case 'air_conditioner': return 'ac-unit';
       case 'coffee_maker': return 'coffee-maker';
+      case 'smart_lock': return 'lock';
       default: return 'device-unknown';
     }
   };
@@ -401,6 +402,7 @@ const MoreScreen = () => {
       case 'smart_light': return 'Luz Inteligente';
       case 'air_conditioner': return 'Aire Acondicionado';
       case 'coffee_maker': return 'Cafetera';
+      case 'smart_lock': return 'Cerradura Inteligente';
       default: return type;
     }
   };
@@ -788,6 +790,7 @@ const MoreScreen = () => {
                       'smart_light': 'Luz Inteligente', 
                       'air_conditioner': 'Aire Acondicionado',
                       'coffee_maker': 'Cafetera',
+                      'smart_lock': 'Cerradura Inteligente'
                     };
                     
                     return (

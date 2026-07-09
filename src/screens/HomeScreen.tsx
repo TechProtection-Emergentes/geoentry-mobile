@@ -339,6 +339,7 @@ const sensorTypeConfig = {
   smart_light: { icon: 'lightbulb', label: 'Luces Inteligentes' },
   air_conditioner: { icon: 'ac-unit', label: 'Aire Acondicionado' },
   coffee_maker: { icon: 'coffee-maker', label: 'Cafetera' },
+  smart_lock: { icon: 'lock', label: 'Cerradura Inteligente' },
 } as const;
 
 type SensorType = keyof typeof sensorTypeConfig;
