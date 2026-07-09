@@ -139,6 +139,35 @@ const LocationsScreen: React.FC = () => {
     }
   }, [locations]);
 
+  // Real-time location tracking for the map marker
+  React.useEffect(() => {
+    let subscription: Location.LocationSubscription | null = null;
+    
+    const startWatching = async () => {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status === 'granted') {
+        subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 2000,
+            distanceInterval: 5,
+          },
+          (location) => {
+            setUserLocation(location);
+          }
+        );
+      }
+    };
+    
+    startWatching();
+    
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, []);
+
   if (loading && locations.length === 0) {
     return (
       <View style={tw`flex-1 bg-gray-900 items-center justify-center`}>

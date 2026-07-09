@@ -280,6 +280,7 @@ const LocationScreen: React.FC = () => {
   const [showProximityModal, setShowProximityModal] = useState(false);
   const [activeSection, setActiveSection] = useState<'location' | 'proximity' | 'settings' | 'history'>('location');
   const watchSubscription = useRef<Location.LocationSubscription | null>(null);
+  const [isWatchingLocation, setIsWatchingLocation] = useState(false);
 
   useEffect(() => {
     checkLocationPermission();
@@ -424,6 +425,7 @@ const LocationScreen: React.FC = () => {
           setLocation(locationData);
         }
       );
+      setIsWatchingLocation(true);
     } catch (error) {
       console.error('Error watching location:', error);
     }
@@ -433,6 +435,7 @@ const LocationScreen: React.FC = () => {
     if (watchSubscription.current) {
       watchSubscription.current.remove();
       watchSubscription.current = null;
+      setIsWatchingLocation(false);
     }
   };
 
@@ -704,15 +707,15 @@ const LocationScreen: React.FC = () => {
               <>
                 <ActionButton 
                   variant="secondary" 
-                  onPress={watchSubscription.current ? stopWatchingLocation : startWatchingLocation}
+                  onPress={isWatchingLocation ? stopWatchingLocation : startWatchingLocation}
                 >
                   <MaterialIcons 
-                    name={watchSubscription.current ? "location-disabled" : "track-changes"} 
+                    name={isWatchingLocation ? "location-disabled" : "track-changes"} 
                     size={20} 
                     color={COLORS.textPrimary} 
                   />
                   <ButtonText variant="secondary">
-                    {watchSubscription.current ? 'Detener Seguimiento' : 'Seguimiento en Tiempo Real'}
+                    {isWatchingLocation ? 'Detener Seguimiento' : 'Seguimiento en Tiempo Real'}
                   </ButtonText>
                 </ActionButton>
 
