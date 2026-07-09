@@ -87,6 +87,44 @@ export type Database = {
           },
         ]
       }
+      alerts: {
+        Row: {
+          created_at: string | null
+          household_id: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          severity: Database["public"]["Enums"]["alert_severity"] | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          household_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          severity?: Database["public"]["Enums"]["alert_severity"] | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          household_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          severity?: Database["public"]["Enums"]["alert_severity"] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       devices: {
         Row: {
           created_at: string | null
@@ -118,6 +156,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      household_members: {
+        Row: {
+          created_at: string | null
+          household_id: string | null
+          id: string
+          profile_id: string | null
+          role: Database["public"]["Enums"]["household_role"] | null
+        }
+        Insert: {
+          created_at?: string | null
+          household_id?: string | null
+          id?: string
+          profile_id?: string | null
+          role?: Database["public"]["Enums"]["household_role"] | null
+        }
+        Update: {
+          created_at?: string | null
+          household_id?: string | null
+          id?: string
+          profile_id?: string | null
+          role?: Database["public"]["Enums"]["household_role"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_members_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      households: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       locations: {
         Row: {
@@ -361,6 +456,7 @@ export type Database = {
       }
     }
     Enums: {
+      alert_severity: "INFO" | "WARNING" | "CRITICAL"
       device_type_enum:
       | "led_tv"
       | "smart_light"
@@ -368,6 +464,7 @@ export type Database = {
       | "coffee_maker"
       | "smart_lock"
       feedback_action_enum: "APPROVED" | "IGNORED" | "MANUAL_OVERRIDE"
+      household_role: "OWNER" | "FAMILY" | "GUEST"
       user_role: "USER" | "ADMIN"
     }
     CompositeTypes: {
@@ -499,6 +596,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      alert_severity: ["INFO", "WARNING", "CRITICAL"],
       device_type_enum: [
         "led_tv",
         "smart_light",
@@ -507,6 +605,7 @@ export const Constants = {
         "smart_lock",
       ],
       feedback_action_enum: ["APPROVED", "IGNORED", "MANUAL_OVERRIDE"],
+      household_role: ["OWNER", "FAMILY", "GUEST"],
       user_role: ["USER", "ADMIN"],
     },
   },
