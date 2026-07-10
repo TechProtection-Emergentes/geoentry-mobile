@@ -4,7 +4,7 @@ import { supabase } from '../supabase/supabase-client';
 import { deviceService } from './deviceService';
 
 //const API_BASE_URL = 'https://geoentry-rest-api.onrender.com/api';
-const API_BASE_URL = 'http://192.168.18.59:3000/api';
+const API_BASE_URL = 'https://geoentry-rest-production.up.railway.app/api';
 
 // Tipos basados en la estructura de Supabase
 type LocationRow = Database['public']['Tables']['locations']['Row'];
@@ -68,7 +68,7 @@ export interface CreateSensorData {
 
 class ApiService {
   private proximityEventEndpoint = '/proximity-events';
-  
+
   setProximityEventEndpoint(endpoint: string) {
     this.proximityEventEndpoint = endpoint;
   }
@@ -77,12 +77,12 @@ class ApiService {
   private async getCurrentUserId(): Promise<string | null> {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
-      
+
       if (error) {
         console.error('Supabase auth error:', error);
         return null;
       }
-      
+
       return user?.id || null;
     } catch (error) {
       console.error('Error getting current user:', error);
@@ -167,16 +167,16 @@ class ApiService {
   async getLocations(): Promise<HomeLocation[]> {
     try {
       const userId = await this.getCurrentUserId();
-      
+
       if (!userId) {
         return [];
       }
 
       // Obtener solo las ubicaciones del usuario actual
       const url = `/locations?profile_id=${userId}`;
-      
+
       const result = await this.makeRequest<ApiHomeLocation[]>(url);
-      
+
       // Convertir la respuesta de la API al formato interno
       const locations = result.map(apiLocation => ({
         id: apiLocation.id || Date.now().toString(),
@@ -190,7 +190,7 @@ class ApiService {
         isActive: apiLocation.is_active,
         createdAt: apiLocation.created_at || new Date().toISOString(),
       }));
-      
+
       return locations;
     } catch (error) {
       console.error('Error in getLocations:', error);
@@ -254,7 +254,7 @@ class ApiService {
   // Enviar evento de proximidad
   async sendProximityEvent(event: ProximityEvent): Promise<void> {
     try {
-      
+
       // Verificar salud de la API primero
       const isApiHealthy = await this.checkApiHealth();
       if (!isApiHealthy) {
@@ -268,7 +268,7 @@ class ApiService {
         console.error('User not authenticated, cannot send proximity event');
         return;
       }
-      
+
       // Formatear el evento para que coincida exactamente con la estructura de Supabase
       const formattedEvent: BackendProximityEvent = {
         type: event.type,
@@ -281,20 +281,20 @@ class ApiService {
         user_id: userId, // Usar el user_id actual del usuario autenticado
         // created_at se genera automáticamente en el backend, no enviar
       };
-      
-      
+
+
       // Validar que device_id sea UUID si se proporciona
       if (formattedEvent.device_id && !this.isValidUUID(formattedEvent.device_id)) {
         console.warn('Device ID is not a valid UUID, sending as null:', formattedEvent.device_id);
         formattedEvent.device_id = null;
       }
-        
+
       // Usar el endpoint correcto
       await this.makeRequest(this.proximityEventEndpoint, {
         method: 'POST',
         body: JSON.stringify(formattedEvent),
       });
-      
+
     } catch (error) {
       console.error('Failed to send proximity event to API:', error);
     }
@@ -306,7 +306,7 @@ class ApiService {
       const response = await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
       });
-      
+
       return response.status === 200;
     } catch (error) {
       console.error('API health check failed:', error);
@@ -374,7 +374,7 @@ class ApiService {
 
       // Obtener eventos del usuario actual
       const result = await this.makeRequest<any[]>(`/proximity-events/user/${userId}`);
-      
+
       return result.map(event => ({
         id: event.id || Date.now().toString(),
         type: event.type,
@@ -402,7 +402,7 @@ class ApiService {
 
       // Obtener dispositivos del usuario actual
       const result = await this.makeRequest<any[]>(`/devices/user/${userId}`);
-      
+
       return result.map(device => ({
         id: device.id,
         name: device.name,
