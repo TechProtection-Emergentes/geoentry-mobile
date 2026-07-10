@@ -217,9 +217,14 @@ const EventsScreen = () => {
   const { devices, refetch: refetchDevices } = useDevices();
   const stats = useEventStats(events);
   const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
+  const paginatedEvents = events.slice(0, page * ITEMS_PER_PAGE);
 
   const onRefresh = async () => {
     setRefreshing(true);
+    setPage(1);
     await Promise.all([refetch(), refetchDevices()]);
     setRefreshing(false);
   };
@@ -315,10 +320,16 @@ const EventsScreen = () => {
   return (
     <Container>
       <FlatList
-        data={events}
+        data={paginatedEvents}
         renderItem={renderEvent}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        onEndReached={() => {
+          if (paginatedEvents.length < events.length) {
+            setPage(prev => prev + 1);
+          }
+        }}
+        onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
