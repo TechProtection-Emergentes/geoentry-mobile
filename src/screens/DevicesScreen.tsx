@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -44,19 +44,25 @@ interface DeviceCardProps {
     today: number;
   };
   userProfile: any;
+  currentDeviceId: string | null;
 }
 
-const DeviceCard: React.FC<DeviceCardProps> = ({ device, eventCounts, userProfile }) => (
+const DeviceCard: React.FC<DeviceCardProps> = ({ device, eventCounts, userProfile, currentDeviceId }) => (
   <View style={tw`bg-gray-800 rounded-lg p-5 mb-4`}>
     <View style={tw`flex-row items-start`}>
       <View style={tw`bg-blue-600 rounded-lg w-12 h-12 items-center justify-center mr-4`}>
-        <MaterialIcons name="smartphone" size={24} color="white" />
+        <MaterialIcons name="devices" size={24} color="white" />
       </View>
-      
       <View style={tw`flex-1`}>
-        <Text style={tw`text-white text-lg font-semibold mb-3`}>{device.name}</Text>
-        
-        <View style={tw`flex-row mb-3`}>
+        <View style={tw`flex-row items-center mb-1`}>
+          <Text style={tw`text-white text-lg font-bold mr-2`}>{device.name}</Text>
+          {currentDeviceId === device.id && (
+            <View style={tw`bg-blue-600/30 px-2 py-1 rounded-full border border-blue-500/30`}>
+              <Text style={tw`text-blue-400 text-xs font-bold`}>Este Dispositivo</Text>
+            </View>
+          )}
+        </View>
+        <View style={tw`flex-row justify-between mt-2`}>
           <View style={tw`flex-1 mr-4`}>
             <Text style={tw`text-gray-400 text-sm`}>Tipo:</Text>
             <Text style={tw`text-white`}>{device.type}</Text>
@@ -66,11 +72,11 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, eventCounts, userProfil
             <Text style={tw`text-white`}>{userProfile?.full_name || 'N/A'}</Text>
           </View>
         </View>
-        
+
         <Text style={tw`text-gray-400 text-sm mb-4`}>
           Email: {userProfile?.email || 'N/A'}
         </Text>
-        
+
         <View style={tw`flex-row items-center justify-between`}>
           <View style={tw`items-center`}>
             <Text style={tw`text-blue-400 text-xl font-bold`}>{eventCounts.total}</Text>
@@ -103,6 +109,15 @@ const DevicesScreen: React.FC = () => {
   const [provisionPassword, setProvisionPassword] = useState('');
   const [provisioning, setProvisioning] = useState(false);
   const [provisionMessage, setProvisionMessage] = useState('');
+  const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDeviceId = async () => {
+      const id = await deviceService.getDeviceId();
+      setCurrentDeviceId(id);
+    };
+    fetchDeviceId();
+  }, []);
 
   const loading = devicesLoading || eventsLoading || profileLoading;
   const error = devicesError || eventsError;
@@ -185,29 +200,29 @@ const DevicesScreen: React.FC = () => {
   };
 
   const statsCards = [
-    { 
-      title: 'Total Dispositivos', 
-      value: stats.totalDevices.toString(), 
-      icon: 'smartphone' as keyof typeof MaterialIcons.glyphMap, 
-      color: '#60a5fa' 
+    {
+      title: 'Total Dispositivos',
+      value: stats.totalDevices.toString(),
+      icon: 'smartphone' as keyof typeof MaterialIcons.glyphMap,
+      color: '#60a5fa'
     },
-    { 
-      title: 'Dispositivos Activos', 
-      value: stats.activeDevices.toString(), 
-      icon: 'check-circle' as keyof typeof MaterialIcons.glyphMap, 
-      color: '#4ade80' 
+    {
+      title: 'Dispositivos Activos',
+      value: stats.activeDevices.toString(),
+      icon: 'check-circle' as keyof typeof MaterialIcons.glyphMap,
+      color: '#4ade80'
     },
-    { 
-      title: 'Fuera de Zona', 
-      value: stats.devicesOutOfZone.toString(), 
-      icon: 'location-off' as keyof typeof MaterialIcons.glyphMap, 
-      color: '#f87171' 
+    {
+      title: 'Fuera de Zona',
+      value: stats.devicesOutOfZone.toString(),
+      icon: 'location-off' as keyof typeof MaterialIcons.glyphMap,
+      color: '#f87171'
     },
-    { 
-      title: 'Sin Actividad', 
-      value: stats.inactiveDevices.toString(), 
-      icon: 'pause-circle-outline' as keyof typeof MaterialIcons.glyphMap, 
-      color: '#9ca3af' 
+    {
+      title: 'Sin Actividad',
+      value: stats.inactiveDevices.toString(),
+      icon: 'pause-circle-outline' as keyof typeof MaterialIcons.glyphMap,
+      color: '#9ca3af'
     },
   ];
 
@@ -280,8 +295,8 @@ const DevicesScreen: React.FC = () => {
           <View style={tw`items-center py-8`}>
             <MaterialIcons name="smartphone" size={48} color="#9ca3af" />
             <Text style={tw`text-gray-400 text-center mt-4`}>
-              {devices.length === 0 
-                ? 'No tienes dispositivos registrados' 
+              {devices.length === 0
+                ? 'No tienes dispositivos registrados'
                 : 'No se encontraron dispositivos'}
             </Text>
           </View>
@@ -292,6 +307,7 @@ const DevicesScreen: React.FC = () => {
               device={device}
               eventCounts={getEventCounts(device.id)}
               userProfile={userProfile}
+              currentDeviceId={currentDeviceId}
             />
           ))
         )}
