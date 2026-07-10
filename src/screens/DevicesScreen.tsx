@@ -13,6 +13,8 @@ import tw from 'twrnc';
 import { useDevices, useDeviceStats } from '../hooks/useDevices';
 import { useEvents } from '../hooks/useEvents';
 import { useCurrentUser } from '../hooks/useCurrentUser';
+import { deviceService } from '../services/deviceService';
+import { Modal } from 'react-native';
 
 interface StatCardProps {
   title: string;
@@ -96,6 +98,11 @@ const DevicesScreen: React.FC = () => {
   const stats = useDeviceStats(devices, events);
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [provisionModalVisible, setProvisionModalVisible] = useState(false);
+  const [provisionSSID, setProvisionSSID] = useState('');
+  const [provisionPassword, setProvisionPassword] = useState('');
+  const [provisioning, setProvisioning] = useState(false);
+  const [provisionMessage, setProvisionMessage] = useState('');
 
   const loading = devicesLoading || eventsLoading || profileLoading;
   const error = devicesError || eventsError;
@@ -128,6 +135,52 @@ const DevicesScreen: React.FC = () => {
       console.error('Error refreshing data:', error);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleProvisionDevice = async () => {
+    if (!provisionSSID) {
+      setProvisionMessage('Por favor ingresa el nombre de tu red WiFi');
+      return;
+    }
+
+    setProvisioning(true);
+    setProvisionMessage('Enviando datos al dispositivo (192.168.4.1)... Asegúrate de estar conectado a la red "GeoEntry-Setup"');
+
+    try {
+      const deviceId = await deviceService.getDeviceId();
+      const payload = {
+        ssid: provisionSSID,
+        password: provisionPassword,
+        userId: userProfile?.id,
+        deviceId: deviceId,
+      };
+
+      const response = await fetch('http://192.168.4.1/api/provision', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setProvisionMessage('¡Dispositivo configurado con éxito! Se reiniciará y conectará a tu WiFi.');
+        setTimeout(() => {
+          setProvisionModalVisible(false);
+          setProvisionMessage('');
+          setProvisionSSID('');
+          setProvisionPassword('');
+        }, 3000);
+      } else {
+        const errorText = await response.text();
+        setProvisionMessage(`Error al configurar: ${errorText}`);
+      }
+    } catch (error) {
+      setProvisionMessage('Error de conexión. ¿Estás seguro de que estás conectado a la red WiFi del ESP32 (GeoEntry-Setup)?');
+      console.error('Error provisioning:', error);
+    } finally {
+      setProvisioning(false);
     }
   };
 
@@ -199,11 +252,19 @@ const DevicesScreen: React.FC = () => {
         }
       >
         {/* Header */}
-        <View style={tw`mb-6`}>
-          <Text style={tw`text-white text-2xl font-bold`}>Dispositivos</Text>
-          <Text style={tw`text-gray-400 mt-1`}>
-            Gestiona todos los dispositivos registrados en el sistema
-          </Text>
+        <View style={tw`mb-6 flex-row justify-between items-center`}>
+          <View style={tw`flex-1`}>
+            <Text style={tw`text-white text-2xl font-bold`}>Dispositivos</Text>
+            <Text style={tw`text-gray-400 mt-1`}>
+              Gestiona todos los dispositivos registrados
+            </Text>
+          </View>
+          <Pressable
+            style={tw`bg-blue-600 p-3 rounded-full`}
+            onPress={() => setProvisionModalVisible(true)}
+          >
+            <MaterialIcons name="add" size={24} color="white" />
+          </Pressable>
         </View>
 
         {/* Stats Cards */}
@@ -235,6 +296,74 @@ const DevicesScreen: React.FC = () => {
           ))
         )}
       </ScrollView>
+
+      {/* Provisioning Modal */}
+      <Modal
+        visible={provisionModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setProvisionModalVisible(false)}
+      >
+        <View style={tw`flex-1 justify-end bg-black/50`}>
+          <View style={tw`bg-gray-800 rounded-t-3xl p-6`}>
+            <View style={tw`flex-row justify-between items-center mb-6`}>
+              <Text style={tw`text-white text-xl font-bold`}>Configurar Nuevo ESP32</Text>
+              <Pressable onPress={() => setProvisionModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color="#9ca3af" />
+              </Pressable>
+            </View>
+
+            <Text style={tw`text-gray-300 mb-4`}>
+              1. Enciende el ESP32. Si es nuevo, creará una red WiFi llamada <Text style={tw`font-bold text-white`}>GeoEntry-Setup</Text>.{'\n'}
+              2. Conecta tu celular a esa red WiFi.{'\n'}
+              3. Ingresa los datos de tu WiFi de casa y presiona Configurar.
+            </Text>
+
+            <View style={tw`mb-4`}>
+              <Text style={tw`text-gray-400 mb-2`}>Nombre de tu WiFi (SSID)</Text>
+              <TextInput
+                style={tw`bg-gray-700 text-white rounded-lg p-3`}
+                placeholder="MiWifiCasa"
+                placeholderTextColor="#6b7280"
+                value={provisionSSID}
+                onChangeText={setProvisionSSID}
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={tw`mb-6`}>
+              <Text style={tw`text-gray-400 mb-2`}>Contraseña del WiFi</Text>
+              <TextInput
+                style={tw`bg-gray-700 text-white rounded-lg p-3`}
+                placeholder="Secreta123"
+                placeholderTextColor="#6b7280"
+                value={provisionPassword}
+                onChangeText={setProvisionPassword}
+                secureTextEntry
+              />
+            </View>
+
+            {provisionMessage ? (
+              <Text style={tw`text-blue-400 mb-4 text-center font-medium`}>{provisionMessage}</Text>
+            ) : null}
+
+            <Pressable
+              style={tw`bg-blue-600 rounded-lg p-4 flex-row justify-center items-center ${provisioning ? 'opacity-70' : ''}`}
+              onPress={handleProvisionDevice}
+              disabled={provisioning}
+            >
+              {provisioning ? (
+                <ActivityIndicator size="small" color="white" style={tw`mr-2`} />
+              ) : (
+                <MaterialIcons name="wifi" size={20} color="white" style={tw`mr-2`} />
+              )}
+              <Text style={tw`text-white text-lg font-bold text-center`}>
+                {provisioning ? 'Configurando...' : 'Configurar Dispositivo'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
