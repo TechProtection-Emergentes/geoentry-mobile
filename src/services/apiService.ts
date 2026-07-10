@@ -3,7 +3,7 @@ import { Database } from '../types/supabase';
 import { supabase } from '../supabase/supabase-client';
 import { deviceService } from './deviceService';
 
-//const API_BASE_URL = 'https://geoentry-rest-api.onrender.com/api';
+//const API_BASE_URL = 'https://geoentry-rest-production.up.railway.app/api';
 const API_BASE_URL = 'https://geoentry-rest-production.up.railway.app/api';
 
 // Tipos basados en la estructura de Supabase
