@@ -79,7 +79,10 @@ class ApiService {
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (error) {
-        console.error('Supabase auth error:', error);
+        // No mostrar error si es simplemente que no hay sesión iniciada
+        if (!error.message.includes('Auth session missing')) {
+          console.error('Supabase auth error:', error);
+        }
         return null;
       }
 
@@ -90,20 +93,25 @@ class ApiService {
     }
   }
 
-  private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async makeRequest<T>(endpoint: string, options: RequestInit & { silenceErrors?: boolean } = {}): Promise<T> {
     try {
       const url = `${API_BASE_URL}${endpoint}`;
+
+      // Separar silenceErrors del resto de opciones de fetch
+      const { silenceErrors, ...fetchOptions } = options;
 
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          ...options.headers,
+          ...fetchOptions.headers,
         },
-        ...options,
+        ...fetchOptions,
       });
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error response:', errorText);
+        if (!silenceErrors) {
+          console.error('API Error response:', errorText);
+        }
         throw new Error(`API Error: ${response.status} - ${response.statusText}. Response: ${errorText}`);
       }
 
@@ -120,7 +128,9 @@ class ApiService {
         throw new Error(`Invalid JSON response: ${responseText}`);
       }
     } catch (error) {
-      console.error('API Request failed:', error);
+      if (!options.silenceErrors) {
+        console.error('API Request failed:', error);
+      }
       throw error;
     }
   }
@@ -339,7 +349,7 @@ class ApiService {
 
       // Verificar si el dispositivo ya existe
       try {
-        await this.makeRequest(`/devices/${deviceId}`, { method: 'GET' });
+        await this.makeRequest(`/devices/${deviceId}`, { method: 'GET', silenceErrors: true });
         return;
       } catch (error) {
         // Dispositivo no existe, continuar con el registro
